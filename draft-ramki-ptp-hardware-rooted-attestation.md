@@ -139,7 +139,6 @@ The attestation token is a CBOR map with the following fields. Deterministic CBO
 # PTP Message Signing Coverage
 The following table indicates which PTP fields MUST be included in the event_digest computation. Fields marked as mutable by IEEE 1588 (e.g., CorrectionField) are excluded in in‑band mode. In PTP‑in‑HTTPS/MTLS mode, the entire PTP message MUST be signed since no in‑path modification is permitted.
 
-**PTP Field (IEEE 1588 header)	Signed?	Rationale**
 | PTP Field (IEEE 1588 header) | Signed? | Rationale |
 |---|:--:|---|
 | TransportSpecific + MessageType | ✅ | Immutable, identifies event type |
