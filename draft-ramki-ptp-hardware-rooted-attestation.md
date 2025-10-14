@@ -115,30 +115,23 @@ Peer‑as‑Verifier
   * Operators SHOULD prefer independent verifiers when regulatory or forensic requirements demand separation of duties.
 
 # Attestation Token Structure
-The attestation token is a CBOR map with the following fields. Deterministic CBOR encoding (RFC 8949) MUST be used to ensure consistent signatures.
+The attestation token is a CBOR map with the following fields. Deterministic CBOR encoding (RFC 8949) MUST be used to ensure consistent signatures.
 
-```mermaid
-classDiagram
-  class AttestationToken {
-    +uint version  "(1)"
-    +uint event_type  "(2) PTP message type"
-    +uint ptp_seq  "(3) SequenceID"
-    +uint phc_timestamp_ns  "(4) PHC timestamp (ns)"
-    +bstr event_digest  "(5) SHA-256 of signed PTP fields"
-    +bstr nonce  "(6) verifier-issued nonce"
-    +uint monotonic_counter  "(7) TPM/HSM-backed counter"
-    +bstr signer_id  "(8) key/cert fingerprint"
-    +bstr|null pcr_summary  "(9) optional TPM Quote / PCRs"
-    +bstr signature  "(10) TPM/HSM signature"
-  }
-  %% Notes
-  class Note_AttestationToken {
-    <<note>>
-    Attestation token is deterministic CBOR (RFC 8949).\nNonce + monotonic_counter provide freshness/replay resistance.\nSignature binds token to non-exportable key.
-  }
-  AttestationToken .. Note_AttestationToken
+```text
+; Attestation Token (CBOR map, deterministic encoding)
+{
+  1 : uint,        ; version (e.g., 1)
+  2 : uint,        ; event_type (PTP message type)
+  3 : uint,        ; ptp_seq (SequenceID)
+  4 : uint,        ; phc_timestamp_ns (nanoseconds)
+  5 : bstr,        ; event_digest (SHA-256 of signed PTP fields)
+  6 : bstr,        ; nonce (verifier-issued, 16 bytes recommended)
+  7 : uint,        ; monotonic_counter (TPM/HSM-backed)
+  8 : bstr,        ; signer_id (hash of TPM/HSM public key or cert fingerprint)
+  9 : bstr / null, ; pcr_summary (optional TPM Quote or compressed PCR set)
+  10: bstr         ; signature (TPM/HSM non-exportable key)
+}
 ```
-
 # PTP Message Signing Coverage
 The following table indicates which PTP fields MUST be included in the event_digest computation. Fields marked as mutable by IEEE 1588 (e.g., CorrectionField) are excluded in in‑band mode. In PTP‑in‑HTTPS/MTLS mode, the entire PTP message MUST be signed since no in‑path modification is permitted.
 
