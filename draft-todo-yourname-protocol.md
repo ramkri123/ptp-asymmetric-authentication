@@ -25,7 +25,7 @@ venue:
 
 author:
  -
-    fullname: Your Name Here
+    fullname: Ramki Krishnan
     organization: Vishanti Systems, Inc.
     email: ramkri123@gmail.com
 
