@@ -1,6 +1,8 @@
 ---
 title: Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs
+
 abbrev: PTP-Hardware‑Rooted-Attestation
+
 category: info
 
 docname: draft-ramki-ptp-hardware-rooted-attestation
@@ -24,6 +26,7 @@ keyword:
  - Time Distribution
  - TPM
  - HSM
+
 venue:
   group: WG
   type: Working Group
@@ -37,10 +40,11 @@ author:
     fullname: Ramki Krishnan
     organization: Vishanti Systems, Inc.
     email: ramkri123@gmail.com
+ 
  -
     fullname: Michael Richardson
-    organization: 
-    email: 
+    organization: Sandelman Software Works Inc
+    email: mcr+IETF@sandelman.ca
 
 
 normative:
