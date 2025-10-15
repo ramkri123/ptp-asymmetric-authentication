@@ -1,6 +1,6 @@
 ---
-title: Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs
-abbrev: PTP-Hardware‑Rooted-Attestation
+title: Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs
+abbrev: PTP-Hardware-Rooted-Attestation
 category: info
 docname: draft-ramki-ptp-hardware-rooted-attestation-latest
 submissiontype: IETF
@@ -24,8 +24,6 @@ keyword:
   - TPM
   - HSM
   - SmartNIC
----
-
 venue:
   group: WG
   type: Working Group
@@ -33,6 +31,7 @@ venue:
   arch: https://example.com/WG
   github: USER/REPO
   latest: https://example.com/LATEST
+---
 
 author:
  -
