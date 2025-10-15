@@ -181,6 +181,7 @@ Verifiers MUST validate PCR summaries against registrar policy but MUST NOT requ
 
 ## Revocation
 
+title: "Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs"
 Verifiers MUST reject tokens from revoked or unregistered Signer_IDs.
 
 Registrars MUST support rapid revocation and distribution of revocation state to verifiers.
@@ -209,10 +210,9 @@ A registry for token versions and signature algorithm identifiers.
 # References
 Normative: IEEE 1588 (PTP), RFC 8949 (CBOR), RFC 8446 (TLS 1.3), TPM 2.0 spec, draft‑kumarvarigonda‑ptp‑auth‑extension.
 
-Informative: draft‑ietf‑ntp‑over‑ptp, RATS architecture (RFC 9334), COSE (RFC 8152).
+  arch: "https://example.com/WG"
 
---- back
-
+  latest: "https://example.com/LATEST"
 # Acknowledgments
 {:numbered="false"}
 
