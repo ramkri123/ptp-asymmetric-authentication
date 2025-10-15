@@ -47,6 +47,8 @@ This document defines an extension to Precision Time Protocol (PTP) that provide
 
 --- middle
 
+<!-- Document canonical name: draft-ramki-ptp-hardware-rooted-attestation-latest -->
+
 # Introduction
 
 Precise, auditable time provenance is increasingly required by regulated systems, distributed ledgers, event forensics, and safety‑critical infrastructures. Existing symmetric PTP authentication primitives provide integrity but limited non‑repudiation and fragile key distribution (e.g., https://www.ietf.org/id/draft-kumarvarigonda-ptp-auth-extension-00.html).
