@@ -1,6 +1,8 @@
 LIBDIR := lib
+include $(LIBDIR)/main.mk
+
 $(LIBDIR)/main.mk:
-ifneq (,$(shell grep "path = $(LIBDIR)" .gitmodules 2>/dev/null))
+ifneq (,$(shell grep "path *= *$(LIBDIR)" .gitmodules 2>/dev/null))
 	git submodule sync
 	git submodule update --init
 else

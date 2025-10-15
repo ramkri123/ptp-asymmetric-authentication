@@ -1,31 +1,29 @@
 ---
 title: Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs
-
 abbrev: PTP-Hardware‑Rooted-Attestation
-
 category: info
-
-docname: draft-ramki-ptp-hardware-rooted-attestation
-submissiontype: IETF  
-number:
-date:
+docname: draft-ramki-ptp-hardware-rooted-attestation-latest
+submissiontype: IETF
+number: 00
+date: 2025-10-15
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: tsv
+workgroup: ntp
 keyword:
- - PTP
- - Attestation
- - Time Synchronization
- - Time Provenance
- - Time Integrity
- - Time Security
- - Time Forensics
- - Time Auditing
- - Time Stamping
- - Time Distribution
- - TPM
- - HSM
+  - PTP
+  - Attestation
+  - Time Synchronization
+  - Time Provenance
+  - Time Integrity
+  - Time Security
+  - Time Forensics
+  - Time Auditing
+  - Time Stamping
+  - Time Distribution
+  - TPM
+  - HSM
+  - SmartNIC
 
 venue:
   group: WG
