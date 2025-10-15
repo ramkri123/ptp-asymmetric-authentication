@@ -2,7 +2,7 @@
 title: "Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs"
 abbrev: "PTP-Hardware‑Rooted-Attestation"
 category: info
-docname: draft-ramki-ptp-hardware-rooted-attestation-latest
+docname: draft-ramki-ptp-hardware-rooted-attestation
 submissiontype: IETF
 consensus: true
 v: 3
@@ -39,8 +39,8 @@ author:
     email: "mcr+IETF@sandelman.ca"
 
 ...
---- abstract
 
+<!-- Document canonical name: draft-ramki-ptp-hardware-rooted-attestation-latest -->
 This document defines an extension to Precision Time Protocol (PTP) that provides per‑event cryptographic attestation using non‑exportable asymmetric keys resident in TPMs or HSMs, and an optional PTP‑in‑HTTPS/MTLS encapsulation mode. When combined with freshness and multi‑observer correlation, this provides defensible proof of proximity for timing events. PTP‑in‑HTTPS/MTLS adds end‑to‑end confidentiality for timing payloads across untrusted fabrics.
 
 
