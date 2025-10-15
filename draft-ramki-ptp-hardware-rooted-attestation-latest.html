@@ -7,6 +7,9 @@
 <title>Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs</title>
 <meta content="Ramki Krishnan" name="author">
 <meta content="Michael Richardson" name="author">
+<meta content="Diego R. Lopez" name="author">
+<meta content="A Prasad" name="author">
+<meta content="Srinivasa Addepalli" name="author">
 <meta content="
        This document defines an extension to Precision Time Protocol (PTP) that provides per‑event cryptographic attestation using non‑exportable asymmetric keys resident in TPMs or HSMs, and an optional PTP‑in‑HTTPS/MTLS encapsulation mode. When combined with freshness and multi‑observer correlation, this provides defensible proof of proximity for timing events. PTP‑in‑HTTPS/MTLS adds end‑to‑end confidentiality for timing payloads across untrusted fabrics. 
     " name="description">
@@ -1047,7 +1050,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <td class="right">October 2025</td>
 </tr></thead>
 <tfoot><tr>
-<td class="left">Krishnan &amp; Richardson</td>
+<td class="left">Krishnan, et al.</td>
 <td class="center">Expires 18 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
@@ -1076,6 +1079,18 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <div class="author">
       <div class="author-name">M. Richardson</div>
 <div class="org">Sandelman Software Works Inc</div>
+</div>
+<div class="author">
+      <div class="author-name">D. Lopez</div>
+<div class="org">Telefonica</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Prasad</div>
+<div class="org">Oracle</div>
+</div>
+<div class="author">
+      <div class="author-name">S. Addepalli</div>
+<div class="org">Aryaka</div>
 </div>
 </dd>
 </dl>
@@ -1496,6 +1511,30 @@ The following table indicates which PTP fields MUST be included in the event_dig
 <div class="email">
 <span>Email:</span>
 <a href="mailto:mcr+IETF@sandelman.ca" class="email">mcr+IETF@sandelman.ca</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Diego R. Lopez</span></div>
+<div dir="auto" class="left"><span class="org">Telefonica</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:diego.r.lopez@telefonica.com" class="email">diego.r.lopez@telefonica.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">A Prasad</span></div>
+<div dir="auto" class="left"><span class="org">Oracle</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:a.prasad@oracle.com" class="email">a.prasad@oracle.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Srinivasa Addepalli</span></div>
+<div dir="auto" class="left"><span class="org">Aryaka</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:srinivasa.addepalli@aryaka.com" class="email">srinivasa.addepalli@aryaka.com</a>
 </div>
 </address>
 </section>

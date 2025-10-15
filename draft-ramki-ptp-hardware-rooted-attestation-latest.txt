@@ -6,6 +6,12 @@ WG Working Group                                             R. Krishnan
 Internet-Draft                                    Vishanti Systems, Inc.
 Intended status: Informational                             M. Richardson
 Expires: 18 April 2026                      Sandelman Software Works Inc
+                                                                D. Lopez
+                                                              Telefonica
+                                                               A. Prasad
+                                                                  Oracle
+                                                            S. Addepalli
+                                                                  Aryaka
                                                          15 October 2025
 
 
@@ -361,3 +367,18 @@ Authors' Addresses
    Michael Richardson
    Sandelman Software Works Inc
    Email: mcr+IETF@sandelman.ca
+
+
+   Diego R. Lopez
+   Telefonica
+   Email: diego.r.lopez@telefonica.com
+
+
+   A Prasad
+   Oracle
+   Email: a.prasad@oracle.com
+
+
+   Srinivasa Addepalli
+   Aryaka
+   Email: srinivasa.addepalli@aryaka.com
