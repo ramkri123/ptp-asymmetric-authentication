@@ -1,3 +1,4 @@
+---
 title: Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs
 abbrev: PTP-Hardware-Rooted-Attestation
 category: info
@@ -33,11 +34,11 @@ venue:
 ---
 
 author:
- -  fullname: Ramki Krishnan
+  - fullname: Ramki Krishnan
     organization: Vishanti Systems, Inc.
     email: ramkri123@gmail.com
 
--   fullname: Michael Richardson
+  - fullname: Michael Richardson
     organization: Sandelman Software Works Inc
     email: mcr+IETF@sandelman.ca
 
