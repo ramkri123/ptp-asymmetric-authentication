@@ -1,16 +1,14 @@
 ---
-title: "Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs"
-abbrev: PTP-Hardware-Rooted-Attestation
+title: "Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs"
+abbrev: "PTP-Hardware‑Rooted-Attestation"
 category: info
-docname: draft-ramki-ptp-hardware-rooted-attestation-latest
+docname: draft-ramki-ptp-hardware-rooted-attestation
 submissiontype: IETF
-number: 00
-date: 2025-10-15
 consensus: true
 v: 3
-area: tsv
-workgroup: ntp
-keyword:
+area: AREA
+workgroup: "WG Working Group"
+keywords:
   - PTP
   - Attestation
   - Time Synchronization
@@ -23,7 +21,7 @@ keyword:
   - Time Distribution
   - TPM
   - HSM
-  - SmartNIC
+
 venue:
   group: WG
   type: Working Group
@@ -31,22 +29,16 @@ venue:
   arch: "https://example.com/WG"
   github: "USER/REPO"
   latest: "https://example.com/LATEST"
----
 
 author:
-  - fullname: Ramki Krishnan
-    organization: Vishanti Systems, Inc.
-    email: ramkri123@gmail.com
+  - fullname: "Ramki Krishnan"
+    organization: "Vishanti Systems, Inc."
+    email: "ramkri123@gmail.com"
+  - fullname: "Michael Richardson"
+    organization: "Sandelman Software Works Inc"
+    email: "mcr+IETF@sandelman.ca"
 
-  - fullname: Michael Richardson
-    organization: Sandelman Software Works Inc
-    email: mcr+IETF@sandelman.ca
-
-
-normative:
-
-informative:
-
+...
 --- abstract
 
 This document defines an extension to Precision Time Protocol (PTP) that provides per‑event cryptographic attestation using non‑exportable asymmetric keys resident in TPMs or HSMs, and an optional PTP‑in‑HTTPS/MTLS encapsulation mode. When combined with freshness and multi‑observer correlation, this provides defensible proof of proximity for timing events. PTP‑in‑HTTPS/MTLS adds end‑to‑end confidentiality for timing payloads across untrusted fabrics.
@@ -181,7 +173,6 @@ Verifiers MUST validate PCR summaries against registrar policy but MUST NOT requ
 
 ## Revocation
 
-title: "Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs"
 Verifiers MUST reject tokens from revoked or unregistered Signer_IDs.
 
 Registrars MUST support rapid revocation and distribution of revocation state to verifiers.
@@ -210,9 +201,10 @@ A registry for token versions and signature algorithm identifiers.
 # References
 Normative: IEEE 1588 (PTP), RFC 8949 (CBOR), RFC 8446 (TLS 1.3), TPM 2.0 spec, draft‑kumarvarigonda‑ptp‑auth‑extension.
 
-  arch: "https://example.com/WG"
+Informative: draft‑ietf‑ntp‑over‑ptp, RATS architecture (RFC 9334), COSE (RFC 8152).
 
-  latest: "https://example.com/LATEST"
+--- back
+
 # Acknowledgments
 {:numbered="false"}
 
