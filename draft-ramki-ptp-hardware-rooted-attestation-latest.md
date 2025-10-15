@@ -2,7 +2,7 @@
 title: "Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs"
 abbrev: "PTP-Hardware‑Rooted-Attestation"
 category: info
-docname: draft-ramki-ptp-hardware-rooted-attestation
+docname: draft-ramki-ptp-hardware-rooted-attestation-latest
 submissiontype: IETF
 consensus: true
 v: 3
