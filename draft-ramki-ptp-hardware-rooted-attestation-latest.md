@@ -47,6 +47,8 @@ This document defines an extension to Precision Time Protocol (PTP) that provide
 
 --- middle
 
+<!-- Lint marker: draft-ramki-ptp-hardware-rooted-attestation-latest-latest -->
+
 <!-- Document canonical name: draft-ramki-ptp-hardware-rooted-attestation-latest -->
 
 # Introduction
