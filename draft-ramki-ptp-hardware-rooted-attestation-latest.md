@@ -1,5 +1,5 @@
 ---
-title: Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs
+title: "Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs"
 abbrev: PTP-Hardware-Rooted-Attestation
 category: info
 docname: draft-ramki-ptp-hardware-rooted-attestation-latest
@@ -28,9 +28,9 @@ venue:
   group: WG
   type: Working Group
   mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  arch: "https://example.com/WG"
+  github: "USER/REPO"
+  latest: "https://example.com/LATEST"
 ---
 
 author:
