@@ -46,8 +46,6 @@ normative:
 
 informative:
 
-...
-
 --- abstract
 
 This document defines an extension to Precision Time Protocol (PTP) that provides per‑event cryptographic attestation using non‑exportable asymmetric keys resident in TPMs or HSMs, and an optional PTP‑in‑HTTPS/MTLS encapsulation mode. When combined with freshness and multi‑observer correlation, this provides defensible proof of proximity for timing events. PTP‑in‑HTTPS/MTLS adds end‑to‑end confidentiality for timing payloads across untrusted fabrics.
