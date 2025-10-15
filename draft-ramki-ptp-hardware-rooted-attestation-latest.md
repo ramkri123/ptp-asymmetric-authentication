@@ -37,6 +37,19 @@ author:
   - fullname: "Michael Richardson"
     organization: "Sandelman Software Works Inc"
     email: "mcr+IETF@sandelman.ca"
+  - ins: D. Lopez
+    name: Diego R. Lopez
+    org: Telefonica
+    email: diego.r.lopez@telefonica.com
+  - ins: A. Prasad
+    name: A Prasad
+    org: Oracle
+    email: a.prasad@oracle.com
+  - ins: S. Addepalli
+    name: Srinivasa Addepalli
+    org: Aryaka
+    email: srinivasa.addepalli@aryaka.com
+
 
 ...
 
