@@ -2,10 +2,10 @@
 
 
 
-WG Working Group                                             R. Krishnan
-Internet-Draft                                    Vishanti Systems, Inc.
-Intended status: Informational                             M. Richardson
-Expires: 20 April 2026                      Sandelman Software Works Inc
+Internet Engineering Task Force (IETF)                       R. Krishnan
+Request for Comments: 0                           Vishanti Systems, Inc.
+Category: Informational                                    M. Richardson
+ISSN: 2070-1721                             Sandelman Software Works Inc
                                                                 D. Lopez
                                                               Telefonica
                                                                A. Prasad
@@ -17,7 +17,6 @@ Expires: 20 April 2026                      Sandelman Software Works Inc
 
   Hardware-Rooted Attestation for Precision Time Protocol: Verifiable
                      Residency and Proximity proofs
-              draft-ramki-ptp-hardware-rooted-attestation
 
 Abstract
 
@@ -30,38 +29,21 @@ Abstract
    end-to-end confidentiality for timing payloads across untrusted
    fabrics.
 
-About This Document
-
-   This note is to be removed before publishing as an RFC.
-
-   The latest revision of this draft can be found at
-   https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-ramki-ptp-
-   hardware-rooted/.
-
-   Discussion of this document takes place on the WG Working Group
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
-
-   Source for this draft and an issue tracker can be found at
-   https://github.com/USER/REPO.
-
 Status of This Memo
 
-   This Internet-Draft is submitted in full conformance with the
-   provisions of BCP 78 and BCP 79.
+   This document is not an Internet Standards Track specification; it is
+   published for informational purposes.
 
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF).  Note that other groups may also distribute
-   working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at https://datatracker.ietf.org/drafts/current/.
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Not all documents
+   approved by the IESG are candidates for any level of Internet
+   Standard; see Section 2 of RFC 7841.
 
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   This Internet-Draft will expire on 20 April 2026.
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   https://www.rfc-editor.org/info/rfc0.
 
 Copyright Notice
 
@@ -69,13 +51,14 @@ Copyright Notice
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents (https://trustee.ietf.org/
-   license-info) in effect on the date of publication of this document.
-   Please review these documents carefully, as they describe your rights
-   and restrictions with respect to this document.  Code Components
-   extracted from this document must include Revised BSD License text as
-   described in Section 4.e of the Trust Legal Provisions and are
-   provided without warranty as described in the Revised BSD License.
+   Provisions Relating to IETF Documents
+   (https://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Revised BSD License text as described in Section 4.e of the
+   Trust Legal Provisions and are provided without warranty as described
+   in the Revised BSD License.
 
 Table of Contents
 
