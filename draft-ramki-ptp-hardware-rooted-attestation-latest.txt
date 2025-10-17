@@ -5,14 +5,14 @@
 WG Working Group                                             R. Krishnan
 Internet-Draft                                    Vishanti Systems, Inc.
 Intended status: Informational                             M. Richardson
-Expires: 18 April 2026                      Sandelman Software Works Inc
+Expires: 20 April 2026                      Sandelman Software Works Inc
                                                                 D. Lopez
                                                               Telefonica
                                                                A. Prasad
                                                                   Oracle
                                                             S. Addepalli
                                                                   Aryaka
-                                                         15 October 2025
+                                                         17 October 2025
 
 
   Hardware-Rooted Attestation for Precision Time Protocol: Verifiable
@@ -61,7 +61,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 April 2026.
+   This Internet-Draft will expire on 20 April 2026.
 
 Copyright Notice
 
@@ -85,7 +85,7 @@ Table of Contents
      3.1.  PTP-in-HTTPS/MTLS encapsulation
      3.2.  Signing Mechanism
      3.3.  Verifier Roles
-   4.  Attestation Token Structure
+   4.  Signed Token Structure
    5.  Security Considerations
      5.1.  Confidentiality
      5.2.  PCR privacy
@@ -124,8 +124,8 @@ Table of Contents
 
    HSM: Hardware Security Module on SmartNIC or separate appliance.
 
-   Verifier: Service that validates signed attestation tokens and
-   records audit evidence.
+   Verifier: Service that validates signed tokens and records audit
+   evidence.
 
    Registrar: PKI/registry service binding signer_id to device identity,
    PCR profile, and revocation state.
@@ -141,20 +141,19 @@ Table of Contents
 
 3.  Architecture Overview
 
-   ## In-band signed PTP extension PTP messages carry an attached
-   attestation token for each signed event.  This mode preserves
-   end-to-end integrity and provenance of PTP payloads (signature binds
-   payload, PHC timestamp, nonce, seq, counter) while leaving
-   confidentiality and in-fabric correction semantics to the underlying
-   network fabric.
+   ## In-band signed PTP extension PTP messages carry an attached signed
+   token for each signed event.  This mode preserves end-to-end
+   integrity and provenance of PTP payloads (signature binds payload,
+   PHC timestamp, nonce, seq, counter) while leaving confidentiality and
+   in-fabric correction semantics to the underlying network fabric.
 
    *Hardware-rooted signing*: PTP endpoints (masters, slaves, boundary
    clocks) are provisioned with non-exportable asymmetric keys in TPMs
    or HSMs.  Each PTP event is signed using a Quote operation that
    includes a nonce and monotonic counter to prevent replay.  The
    signer_id (e.g., key hash or certificate serial) is included in the
-   attestation token to allow verifiers to fetch the corresponding
-   public key and PCR profile from a registrar service.
+   signed token to allow verifiers to fetch the corresponding public key
+   and PCR profile from a registrar service.
 
    *Note*: In-band attestation preserves integrity and provenance but
    does not provide confidentiality; PTP payloads remain visible to
@@ -163,10 +162,10 @@ Table of Contents
 3.1.  PTP-in-HTTPS/MTLS encapsulation
 
    Native PTP bytes are framed inside persistent HTTPS/MTLS streams
-   between endpoints.  Attestation tokens are carried inside the same
-   MTLS connection or out-of-band to a verifier.  This prevents in-path
-   modification and adds confidentiality for timing payloads and
-   attestation metadata.
+   between endpoints.  Signed tokens are carried inside the same MTLS
+   connection or out-of-band to a verifier.  This prevents in-path
+   modification and adds confidentiality for timing payloads and signed
+   metadata.
 
 3.2.  Signing Mechanism
 
@@ -181,15 +180,14 @@ Table of Contents
    Two deployment patterns are supported for the verifier function:
 
    Dedicated Verifier Service * A logically separate service issues
-   nonces, validates attestation tokens, checks counters, and records
-   audit evidence. * Advantages: clear separation of duties, centralized
-   audit logs, simplified revocation handling, and independence for
-   regulatory or forensic review. * Normative requirements: * The
-   dedicated verifier MUST maintain an append-only, tamper-evident audit
-   log of all tokens and validation results.  * The verifier MUST
-   enforce nonce freshness, monotonic counter progression, and token
-   TTL.  * The verifier MUST reject tokens from revoked or unregistered
-   Signer_IDs.
+   nonces, validates signed tokens, checks counters, and records audit
+   evidence. * Advantages: clear separation of duties, centralized audit
+   logs, simplified revocation handling, and independence for regulatory
+   or forensic review. * Normative requirements: * The dedicated
+   verifier MUST maintain an append-only, tamper-evident audit log of
+   all tokens and validation results.  * The verifier MUST enforce nonce
+   freshness, monotonic counter progression, and token TTL.  * The
+   verifier MUST reject tokens from revoked or unregistered Signer_IDs.
 
    Peer-as-Verifier * A PTP peer (master, slave, or boundary clock) may
    act as verifier by issuing nonces to its counterpart and validating
@@ -205,58 +203,56 @@ Table of Contents
    verifiers when regulatory or forensic requirements demand separation
    of duties.
 
-4.  Attestation Token Structure
+4.  Signed Token Structure
 
-   The attestation token is a CBOR map with the following fields.
-   Deterministic CBOR encoding (RFC 8949) MUST be used to ensure
-   consistent signatures.
+   The signed token is a CBOR map with the following fields.  CBOR
+   encoding (RFC 8949) is be used to ensure consistent signatures.
 
-   text ; Attestation Token (CBOR map, deterministic encoding) { 1 :
-   uint, ; version (e.g., 1) 2 : uint, ; event_type (PTP message type) 3
-   : uint, ; ptp_seq (SequenceID) 4 : uint, ; phc_timestamp_ns
-   (nanoseconds) 5 : bstr, ; event_digest (SHA-256 of signed PTP fields)
-   6 : bstr, ; nonce (verifier-issued, 16 bytes recommended) 7 : uint, ;
-   monotonic_counter (TPM/HSM-backed) 8 : bstr, ; signer_id (hash of
-   TPM/HSM public key or cert fingerprint) 9 : bstr / null, ;
-   pcr_summary (optional TPM Quote or compressed PCR set) 10: bstr ;
-   signature (TPM/HSM non-exportable key) } # PTP Message Signing
-   Coverage The following table indicates which PTP fields MUST be
-   included in the event_digest computation.  Fields marked as mutable
-   by IEEE 1588 (e.g., CorrectionField) are excluded in in-band mode.
-   In PTP-in-HTTPS/MTLS mode, the entire PTP message MUST be signed
-   since no in-path modification is permitted.
+   text ; Signed Token (CBOR map)) { 1 : uint, ; version (e.g., 1) 2 :
+   uint, ; event_type (PTP message type) 3 : uint, ; ptp_seq
+   (SequenceID) 4 : uint, ; phc_timestamp_ns (nanoseconds) 5 : bstr, ;
+   event_digest (SHA-256 of signed PTP fields) 6 : bstr, ; nonce
+   (verifier-issued, 16 bytes recommended) 7 : uint, ; monotonic_counter
+   (TPM/HSM-backed) 8 : bstr, ; signer_id (hash of TPM/HSM public key or
+   cert fingerprint) 9 : bstr / null, ; pcr_summary (optional TPM Quote
+   or compressed PCR set) 10: bstr ; signature (TPM/HSM non-exportable
+   key) } # PTP Message Signing Coverage The following table indicates
+   which PTP fields MUST be included in the event_digest computation.
+   Fields marked as mutable by IEEE 1588 (e.g., CorrectionField) are
+   excluded in in-band mode.  In PTP-in-HTTPS/MTLS mode, the entire PTP
+   message MUST be signed since no in-path modification is permitted.
 
     +=====================+=========+================================+
     | PTP Field           | Signed? | Rationale                      |
     | (IEEE 1588 header)  |         |                                |
     +=====================+=========+================================+
-    | TransportSpecific + |    ✅    | Immutable, identifies event    |
+    | TransportSpecific + |   Yes   | Immutable, identifies event    |
     | MessageType         |         | type                           |
     +---------------------+---------+--------------------------------+
-    | VersionPTP          |    ✅    | Immutable                      |
+    | VersionPTP          |   Yes   | Immutable                      |
     +---------------------+---------+--------------------------------+
-    | MessageLength       |    ✅    | Integrity of framing           |
+    | MessageLength       |   Yes   | Integrity of framing           |
     +---------------------+---------+--------------------------------+
-    | DomainNumber        |    ✅    | Integrity of domain separation |
+    | DomainNumber        |   Yes   | Integrity of domain separation |
     +---------------------+---------+--------------------------------+
-    | FlagField           |    ✅    | Integrity of mode bits         |
+    | FlagField           |   Yes   | Integrity of mode bits         |
     +---------------------+---------+--------------------------------+
-    | CorrectionField     |    ❌    | Mutable by transparent clocks; |
+    | CorrectionField     |    No   | Mutable by transparent clocks; |
     |                     |         | excluded in in-band mode       |
     +---------------------+---------+--------------------------------+
-    | SourcePortIdentity  |    ✅    | Binds to originating clock     |
+    | SourcePortIdentity  |   Yes   | Binds to originating clock     |
     +---------------------+---------+--------------------------------+
-    | SequenceID          |    ✅    | Prevents replay/reordering     |
+    | SequenceID          |   Yes   | Prevents replay/reordering     |
     +---------------------+---------+--------------------------------+
-    | ControlField        |    ✅    | Immutable                      |
+    | ControlField        |   Yes   | Immutable                      |
     +---------------------+---------+--------------------------------+
-    | LogMessageInterval  |    ✅    | Immutable                      |
+    | LogMessageInterval  |   Yes   | Immutable                      |
     +---------------------+---------+--------------------------------+
-    | PTP Payload (Sync,  |    ✅    | Except correction sub-fields   |
+    | PTP Payload (Sync,  |   Yes   | Except correction sub-fields   |
     | FollowUp, DelayReq, |         | if mutable                     |
     | DelayResp, etc.)    |         |                                |
     +---------------------+---------+--------------------------------+
-    | TLVs (other than    |    ✅    | Integrity of extensions        |
+    | TLVs (other than    |   Yes   | Integrity of extensions        |
     | Attestation)        |         |                                |
     +---------------------+---------+--------------------------------+
 
@@ -341,7 +337,7 @@ Table of Contents
 
 6.  IANA Considerations
 
-   A new PTP TLV type for the attestation token.
+   A new PTP TLV type for the signed token.
 
    A registry for token versions and signature algorithm identifiers.
 
