@@ -1,15 +1,30 @@
-LIBDIR := lib
-include $(LIBDIR)/main.mk
+# Makefile for IETF Draft
 
-$(LIBDIR)/main.mk:
-ifneq (,$(shell grep "path *= *$(LIBDIR)" .gitmodules 2>/dev/null))
-	git submodule sync
-	git submodule update --init
-else
-ifneq (,$(wildcard $(ID_TEMPLATE_HOME)))
-	ln -s "$(ID_TEMPLATE_HOME)" $(LIBDIR)
-else
-	git clone -q --depth 10 -b main \
-	    https://github.com/martinthomson/i-d-template $(LIBDIR)
+DRAFT := draft-ramki-ptp-hardware-rooted-attestation-00
+MMARK := $(HOME)/go/bin/mmark
+XML2RFC := xml2rfc
+
+# If xml2rfc is not in path, use the local one
+ifeq (, $(shell which xml2rfc))
+	XML2RFC := $(HOME)/.local/bin/xml2rfc
 endif
-endif
+
+.PHONY: all clean txt html xml
+
+all: txt html
+
+txt: $(DRAFT).txt
+html: $(DRAFT).html
+xml: $(DRAFT).xml
+
+$(DRAFT).xml: draft-ramki-ptp-hardware-rooted-attestation-latest.md
+	$(MMARK) $< > $@
+
+$(DRAFT).txt: $(DRAFT).xml
+	$(XML2RFC) --text $< -o $@
+
+$(DRAFT).html: $(DRAFT).xml
+	$(XML2RFC) --html $< -o $@
+
+clean:
+	rm -f $(DRAFT).xml $(DRAFT).txt $(DRAFT).html

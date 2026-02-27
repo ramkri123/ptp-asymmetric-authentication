@@ -1,65 +1,66 @@
----
-title: "Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs"
-abbrev: "PTP-Hardware‑Rooted-Attestation"
-category: info
-docname: draft-ramki-ptp-hardware-rooted-attestation-00
-submissiontype: IETF
-number: 00
-consensus: true
-v: 3
-area: AREA
-workgroup: "WG Working Group"
-keywords:
-  - PTP
-  - Attestation
-  - Time Synchronization
-  - Time Provenance
-  - Time Integrity
-  - Time Security
-  - Time Forensics
-  - Time Auditing
-  - Time Stamping
-  - Time Distribution
-  - TPM
-  - HSM
+%%%
+title = "Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs"
+abbrev = "PTP-Hardware‑Rooted-Attestation"
+category = "info"
+docName = "draft-ramki-ptp-hardware-rooted-attestation-00"
+ipr = "trust200902"
+area = "Security"
+workgroup = "PTP Working Group"
+keyword = ["PTP", "Attestation", "Time Synchronization", "Time Provenance", "Time Integrity"]
 
-venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: "https://example.com/WG"
-  github: "USER/REPO"
-  latest: "https://example.com/LATEST"
+[seriesInfo]
+name = "Internet-Draft"
+value = "draft-ramki-ptp-hardware-rooted-attestation-00"
+stream = "IETF"
+status = "informational"
 
-author:
-  - fullname: "Ramki Krishnan"
-    organization: "Vishanti Systems, Inc."
-    email: "ramkri123@gmail.com"
-  - fullname: "Michael Richardson"
-    organization: "Sandelman Software Works Inc"
-    email: "mcr+IETF@sandelman.ca"
-  - ins: D. Lopez
-    name: Diego R. Lopez
-    org: Telefonica
-    email: diego.r.lopez@telefonica.com
-  - ins: A. Prasad
-    name: A Prasad
-    org: Oracle
-    email: a.prasad@oracle.com
-  - ins: S. Addepalli
-    name: Srinivasa Addepalli
-    org: Aryaka
-    email: srinivasa.addepalli@aryaka.com
+[[author]]
+initials = "R."
+surname = "Krishnan"
+fullname = "Ramki Krishnan"
+organization = "Vishanti Systems, Inc."
+  [author.address]
+  email = "ramkri123@gmail.com"
 
+[[author]]
+initials = "M."
+surname = "Richardson"
+fullname = "Michael Richardson"
+organization = "Sandelman Software Works Inc"
+  [author.address]
+  email = "mcr+IETF@sandelman.ca"
 
-...
+[[author]]
+initials = "D."
+surname = "Lopez"
+fullname = "Diego R. Lopez"
+organization = "Telefonica"
+  [author.address]
+  email = "diego.r.lopez@telefonica.com"
 
---- abstract
+[[author]]
+initials = "A."
+surname = "Prasad"
+fullname = "A Prasad"
+organization = "Oracle"
+  [author.address]
+  email = "a.prasad@oracle.com"
+
+[[author]]
+initials = "S."
+surname = "Addepalli"
+fullname = "Srinivasa Addepalli"
+organization = "Aryaka"
+  [author.address]
+  email = "srinivasa.addepalli@aryaka.com"
+
+%%%
+
+.# Abstract
 
 This document defines an extension to Precision Time Protocol (PTP) that provides per‑event cryptographic attestation using non‑exportable asymmetric keys resident in TPMs or HSMs, and an optional PTP‑in‑HTTPS/MTLS encapsulation mode. When combined with freshness and multi‑observer correlation, this provides defensible proof of proximity for timing events. PTP‑in‑HTTPS/MTLS adds end‑to‑end confidentiality for timing payloads across untrusted fabrics.
 
-
---- middle
+{mainmatter}
 
 <!-- Lint marker: draft-ramki-ptp-hardware-rooted-attestation-latest-latest -->
 
@@ -222,9 +223,8 @@ Normative: IEEE 1588 (PTP), RFC 8949 (CBOR), RFC 8446 (TLS 1.3), TPM 2.0 spec, d
 
 Informative: draft‑ietf‑ntp‑over‑ptp, RATS architecture (RFC 9334), COSE (RFC 8152).
 
---- back
+{backmatter}
 
 # Acknowledgments
-{:numbered="false"}
 
 TODO acknowledge.
