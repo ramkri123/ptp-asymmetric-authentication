@@ -1,16 +1,16 @@
 %%%
-title = "Hardware‑Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity proofs"
+title = "Hardware‑Rooted Attestation for Precision Time Protocol: Scalable Workload Identity and Phased PQC Readiness"
 abbrev = "PTP-Hardware‑Rooted-Attestation"
 category = "info"
-docName = "draft-ramki-ptp-hardware-rooted-attestation-00"
+docName = "draft-ramki-ptp-hardware-rooted-attestation-01"
 ipr = "trust200902"
 area = "Security"
 workgroup = "PTP Working Group"
-keyword = ["PTP", "Attestation", "Time Synchronization", "Time Provenance", "Time Integrity"]
+keyword = ["PTP", "Attestation", "Time Provenance", "PQC", "SPIFFE", "Merkle Tree", "Non-Repudiation"]
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-ramki-ptp-hardware-rooted-attestation-00"
+value = "draft-ramki-ptp-hardware-rooted-attestation-01"
 stream = "IETF"
 status = "informational"
 
@@ -18,7 +18,7 @@ status = "informational"
 initials = "R."
 surname = "Krishnan"
 fullname = "Ramki Krishnan"
-organization = "Vishanti Systems, Inc."
+organization = "JPMorgan Chase"
   [author.address]
   email = "ramkri123@gmail.com"
 
@@ -58,173 +58,86 @@ organization = "Aryaka"
 
 .# Abstract
 
-This document defines an extension to Precision Time Protocol (PTP) that provides per‑event cryptographic attestation using non‑exportable asymmetric keys resident in TPMs or HSMs, and an optional PTP‑in‑HTTPS/MTLS encapsulation mode. When combined with freshness and multi‑observer correlation, this provides defensible proof of proximity for timing events. PTP‑in‑HTTPS/MTLS adds end‑to‑end confidentiality for timing payloads across untrusted fabrics.
+This document defines a scalable framework for hardware‑rooted cryptographic attestation in the Precision Time Protocol (PTP). Standard PTP security mechanisms rely on symmetric keys, which suffer from identity ambiguity and source repudiation—vulnerabilities that allow any node possessing the shared secret to impersonate a Grandmaster. To resolve these issues while overcoming the silicon throughput limits of traditional TPMs and the overhead of Post-Quantum Cryptography (PQC), this draft specifies a tiered trust model. A Hardware Root (e.g., TPM, iLO) establishes a long-term PQC identity, while a SPIFFE-based control plane manages the frequent rotation of short-lived operational keys. These keys perform amortized signing of PTP message batches via Merkle Trees, ensuring wire-speed synchronization and irrefutable provenance for regulated environments.
 
 {mainmatter}
 
-<!-- Lint marker: draft-ramki-ptp-hardware-rooted-attestation-latest-latest -->
-
-<!-- Document canonical name: draft-ramki-ptp-hardware-rooted-attestation-latest -->
-
 # Introduction
 
-Precise, auditable time provenance is increasingly required by regulated systems, distributed ledgers, event forensics, and safety‑critical infrastructures. Existing symmetric PTP authentication primitives provide integrity but limited non‑repudiation and fragile key distribution (e.g., https://www.ietf.org/id/draft-kumarvarigonda-ptp-auth-extension-00.html).
+Precise, auditable time provenance is a cornerstone for regulated environments, including financial services, distributed ledgers, and sovereign AI. However, standard PTP security (IEEE 1588-2019) faces three critical architectural challenges:
 
-This draft specifies an asymmetric, TPM/HSM‑backed attestation extension for PTP events plus an optional PTP‑in‑HTTPS/MTLS encapsulation mode. Goals are per‑event provenance, replay resistance, staged deployability in heterogeneous environments, and practical offload to SmartNICs or HSMs to meet performance needs. The optional HTTPS/MTLS encapsulation adds end‑to‑end confidentiality to the integrity and provenance provided by signing.
+1. **The Identity and Repudiation Problem:** Current PTP security relies largely on symmetric keys (HMAC-SHA256). Because the Grandmaster (GM) and all Slaves share the same secret, any compromised node can forge time messages appearing to originate from the GM. This lack of source non-repudiation makes it impossible to irrefutably audit time provenance or defend against "insider" clock spoofing.
+2. **The Throughput Gap:** Hardware Security Modules (TPMs/HSMs) are "slow-path" silicon, often incapable of performing the 128+ asymmetric signatures per second required by high-performance PTP profiles.
+3. **The PQC Payload Problem:** Post-Quantum Cryptographic (PQC) signatures (e.g., ML-DSA) are significantly larger than standard PTP message MTUs, introducing fragmentation risks and unacceptable processing jitter if applied per-packet.
 
-# Conventions and Definitions
+This memo introduces a **Transitive and Amortized Attestation** model. By anchoring an automated software control plane in hardware silicon, we resolve the identity ambiguity of symmetric keys while maintaining wire-speed performance.
 
-PHC: Packet Hardware Clock exposed by NIC or SmartNIC.
+# Architecture: The Tiered Trust Model
 
-TPM: Trusted Platform Module supporting non‑exportable keys and Quote operations.
+Trust is distributed across three functional layers to bridge the gap between "Slow-but-Secure" hardware and "Fast-and-Precise" network timing.
 
-HSM: Hardware Security Module on SmartNIC or separate appliance.
+## Tier 1: Hardware Root (Immutable Identity)
+The Root of Trust (RoT) is a hardware component (e.g., TPM 2.0, HPE iLO 7, or SmartNIC SRoT) containing a non-exportable Identity Key. This key MUST be asymmetric and SHOULD be PQC-compatible (e.g., ML-DSA). This establishes an irrefutable "Silicon Identity" that cannot be cloned, addressing the fundamental weakness of symmetric shared secrets.
 
-Verifier: Service that validates signed tokens and records audit evidence.
+## Tier 2: Control Plane (Workload Orchestration)
+To manage the lifecycle of cryptographic material without manual intervention, the PTP daemon is treated as a managed workload under frameworks such as **SPIFFE/SPIRE**. 
+* **Attestation:** SPIRE verifies the RoT's identity and platform state (PCRs).
+* **Delegation:** Upon successful attestation, SPIRE issues short-lived SVIDs and ephemeral **Operational Keys**. This "Transitive Attestation" binds the high-speed software/NIC key to the immutable hardware identity.
 
-Registrar: PKI/registry service binding signer_id to device identity, PCR profile, and revocation state.
+## Tier 3: Data Plane (Amortized Execution)
+High-frequency signing is offloaded to the Data Plane (e.g., SmartNIC FPGA). 
+* **Merkle Batching:** Messages are hashed into a Merkle Tree. A single signature on the Merkle Root provides cryptographic integrity and non-repudiable proof for the entire batch of PTP events. This amortization makes large PQC signatures feasible within the PTP ecosystem.
 
-Monotonic Counter: Non‑decreasing hardware or TPM counter used to prevent replay.
+# Scalable Attestation Mechanism
 
-HTTPS/MTLS: HTTP over TLS 1.3 with mutual TLS (client certificates) for endpoint authentication.
+## Solving Source Repudiation
+By utilizing asymmetric operational keys certified by the Hardware Root, a Verifier can irrefutably prove that a batch of PTP messages originated from a specific physical device. In this model, a compromised Slave has no access to the private key required to forge a Grandmaster's signature, fixing the identity ambiguity inherent in current symmetric PTP profiles.
 
-SmartNIC: Programmable NIC with PHC, crypto acceleration, and optionally on‑card HSM.
+## Amortized PQC Readiness
+PQC adoption is phased to ensure that data-plane performance is never compromised:
+1. **Identity Layer:** MUST use PQC-capable hardware roots (Identity Key) today to secure the long-term device identity.
+2. **Control Layer:** SHOULD use PQC-signed SVIDs (SPIFFE) to protect the distribution and rotation of keys.
+3. **Data Layer:** MAY use classical asymmetric algorithms (e.g., Ed25519) for the Merkle Root today, transitioning to PQC as specialized hardware acceleration becomes pervasive.
 
-# Architecture Overview
-## In‑band signed PTP extension
-PTP messages carry an attached signed token for each signed event. This mode preserves end‑to‑end integrity and provenance of PTP payloads (signature binds payload, PHC timestamp, nonce, seq, counter) while leaving confidentiality and in‑fabric correction semantics to the underlying network fabric.
+# Signed Token Structure (CBOR)
 
-**Hardware‑rooted signing**: PTP endpoints (masters, slaves, boundary clocks) are provisioned with non‑exportable asymmetric keys in TPMs or HSMs. Each PTP event is signed using a Quote operation that includes a nonce and monotonic counter to prevent replay. The signer_id (e.g., key hash or certificate serial) is included in the signed token to allow verifiers to fetch the corresponding public key and PCR profile from a registrar service.
-
-**Note**: In‑band attestation preserves integrity and provenance but does not provide confidentiality; PTP payloads remain visible to in‑path observers.
-
-## PTP‑in‑HTTPS/MTLS encapsulation
-Native PTP bytes are framed inside persistent HTTPS/MTLS streams between endpoints. Signed tokens are carried inside the same MTLS connection or out‑of‑band to a verifier. This prevents in‑path modification and adds confidentiality for timing payloads and signed metadata.
-
-## Signing Mechanism
-Endpoints MUST compute event_digest over the entire PTP message as transmitted, except for fields explicitly designated as mutable by IEEE 1588 (e.g., correction field). When PTP messages are encapsulated in HTTPS/MTLS, endpoints SHOULD sign the entire PTP message without exclusions, as no in‑path modification is permitted.
-
-## Verifier Roles
-Two deployment patterns are supported for the verifier function:
-
-Dedicated Verifier Service
-* A logically separate service issues nonces, validates signed tokens, checks counters, and records audit evidence.
-* Advantages: clear separation of duties, centralized audit logs, simplified revocation handling, and independence for regulatory or forensic review.
-* Normative requirements:
-  * The dedicated verifier MUST maintain an append‑only, tamper‑evident audit log of all tokens and validation results.
-  * The verifier MUST enforce nonce freshness, monotonic counter progression, and token TTL.
-  * The verifier MUST reject tokens from revoked or unregistered Signer_IDs.
-
-Peer‑as‑Verifier
-* A PTP peer (master, slave, or boundary clock) may act as verifier by issuing nonces to its counterpart and validating returned signed tokens inline with the timing exchange.
-* Advantages: immediate freshness check, no extra infrastructure, lower latency.
-* Risks: blurs separation of duties, reduces independence of audit evidence, and increases reliance on peer trustworthiness.
-* Normative requirements:
-  * A peer acting as verifier MUST log all signed tokens and validation results to an append‑only audit store or forward them to a registrar.
-  * A peer acting as verifier MUST apply the same validation rules as a dedicated verifier (nonce freshness, monotonic counter, TTL, revocation).
-  * Operators SHOULD prefer independent verifiers when regulatory or forensic requirements demand separation of duties.
-
-# Signed Token Structure
-The signed token is a CBOR map with the following fields. CBOR encoding (RFC 8949) is be used to ensure consistent signatures.
+The amortized token provides the "Batch Proof" for $N$ sequence IDs.
 
 ```text
-; Signed Token (CBOR map))
+; Amortized Signed Token (CBOR map)
 {
-  1 : uint,        ; version (e.g., 1)
-  2 : uint,        ; event_type (PTP message type)
-  3 : uint,        ; ptp_seq (SequenceID)
-  4 : uint,        ; phc_timestamp_ns (nanoseconds)
-  5 : bstr,        ; event_digest (SHA-256 of signed PTP fields)
-  6 : bstr,        ; nonce (verifier-issued, 16 bytes recommended)
-  7 : uint,        ; monotonic_counter (TPM/HSM-backed)
-  8 : bstr,        ; signer_id (hash of TPM/HSM public key or cert fingerprint)
-  9 : bstr / null, ; pcr_summary (optional TPM Quote or compressed PCR set)
-  10: bstr         ; signature (TPM/HSM non-exportable key)
+  1 : uint,         ; version (e.g., 2)
+  2 : uint,         ; batch_size
+  3 : bstr,         ; Merkle Root Hash
+  4 : uint,         ; First SequenceID in batch
+  5 : bstr,         ; SVID / Operational Cert Reference
+  6 : bstr,         ; nonce (verifier-issued)
+  7 : bstr          ; signature (Classical or PQC)
 }
 ```
-# PTP Message Signing Coverage
-The following table indicates which PTP fields MUST be included in the event_digest computation. Fields marked as mutable by IEEE 1588 (e.g., CorrectionField) are excluded in in‑band mode. In PTP‑in‑HTTPS/MTLS mode, the entire PTP message MUST be signed since no in‑path modification is permitted.
-
-| PTP Field (IEEE 1588 header) | Signed? | Rationale |
-|---|:--:|---|
-| TransportSpecific + MessageType | Yes | Immutable, identifies event type |
-| VersionPTP | Yes | Immutable |
-| MessageLength | Yes | Integrity of framing |
-| DomainNumber | Yes | Integrity of domain separation |
-| FlagField | Yes | Integrity of mode bits |
-| CorrectionField | No | Mutable by transparent clocks; excluded in in‑band mode |
-| SourcePortIdentity | Yes | Binds to originating clock |
-| SequenceID | Yes | Prevents replay/reordering |
-| ControlField | Yes | Immutable |
-| LogMessageInterval | Yes | Immutable |
-| PTP Payload (Sync, FollowUp, DelayReq, DelayResp, etc.) | Yes | Except correction sub‑fields if mutable |
-| TLVs (other than Attestation) | Yes | Integrity of extensions |
-
-**Normative rule:**
-* In in‑band TLV mode, event_digest MUST be computed over the entire PTP message excluding CorrectionField (and any other fields normatively designated as mutable by IEEE 1588).
-* In PTP‑in‑HTTPS/MTLS mode, the entire PTP message MUST be included in the digest, since no in‑path modification is permitted.
 
 # Security Considerations
-## Replay and relay attacks
 
-Endpoints MUST include a verifier‑issued nonce and a monotonic counter in each token.
+## Integrity vs. Network Jitter
 
-Verifiers MUST:
+PQC signatures are computationally heavy. Performing these on every packet would introduce variable jitter into the PTP timing loop. The amortized Merkle approach ensures that the timing-sensitive hardware timestamping remains asynchronous from the heavy cryptographic signing process.
 
-- Reject tokens with stale or missing nonces.
-- Reject tokens with regressions in monotonic counters.
-- Reject tokens where counters jump beyond an operator‑defined threshold.
+## Symmetric Key Obsolescence
 
-Verifiers SHOULD log round‑trip times (RTT) for challenge/response exchanges and MAY apply policy thresholds to detect relays or anomalous delays.
+Symmetric-key PTP security is insufficient for regulated time provenance due to the lack of source non-repudiation. This memo provides the blueprint for transitioning to asymmetric hardware-rooted keys as the only viable path to meaningful identity in multi-tenant or untrusted fabrics.
 
-## Confidentiality
+## Network Path Asymmetry
 
-In‑band attestation TLVs provide integrity and provenance but do not provide confidentiality; PTP payloads remain visible to in‑path observers.
-
-Operators requiring confidentiality MUST use PTP‑in‑HTTPS/MTLS encapsulation, which prevents in‑path modification and protects both timing payloads and attestation metadata.
-
-## PCR privacy
-
-PCR values and TPM quotes may reveal sensitive configuration or software state.
-
-Registrars MUST enforce minimal disclosure policies, requiring only the PCRs necessary for attestation policy.
-
-Verifiers MUST validate PCR summaries against registrar policy but MUST NOT require disclosure of unrelated PCRs.
-
-## Revocation
-
-Verifiers MUST reject tokens from revoked or unregistered Signer_IDs.
-
-Registrars MUST support rapid revocation and distribution of revocation state to verifiers.
-
-Operators MUST ensure revocation information is available to verifiers in near‑real time.
-
-## Compromise handling
-
-In the event of TPM/HSM compromise, operators MUST support re‑enrollment and key rollover.
-
-Registrars MUST provide mechanisms to bind new keys to existing device identities and to revoke compromised keys without disrupting unaffected devices.
-
-Audit logs MUST record revocation and re‑enrollment events for forensic traceability.
-
-## Location claims
-
-Verifiers MUST NOT assert geographic residency or location from a single signed timestamp.
-
-Proximity proofs require correlation across multiple observers and RTT measurements.
+Attestation provides proof of Identity, Integrity, and Residency. It does not protect against physical network delay or path asymmetry. This mechanism MUST be used in conjunction with PTP's native delay measurement mechanisms.
 
 # IANA Considerations
-A new PTP TLV type for the signed token.
+Registry for PTP_AMORTIZED_ATTESTATION_TLV.
 
-A registry for token versions and signature algorithm identifiers.
+Registry for PTP_ATTESTATION_CONTROL_PLANE (Initial Entry: SPIFFE).
 
 # References
-Normative: IEEE 1588 (PTP), RFC 8949 (CBOR), RFC 8446 (TLS 1.3), TPM 2.0 spec, draft‑kumarvarigonda‑ptp‑auth‑extension.
+Normative: IEEE 1588-2019, RFC 8949 (CBOR), FIPS 204 (ML-DSA), SPIFFE Specification.
 
-Informative: draft‑ietf‑ntp‑over‑ptp, RATS architecture (RFC 9334), COSE (RFC 8152).
+Informative: RFC 9334 (RATS Architecture), HPE iLO 7 Security Whitepaper.
 
 {backmatter}
-
-# Acknowledgments
-
-TODO acknowledge.
