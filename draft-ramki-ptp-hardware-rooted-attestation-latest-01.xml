@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
+<rfc version="3" ipr="trust200902" docName="draft-ramki-ptp-hardware-rooted-attestation-01" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
+
+<front>
+<title abbrev="PTP-Hardware‑Rooted-Attestation">Hardware‑Rooted Attestation for Precision Time Protocol: Scalable Workload Identity and Phased PQC Readiness</title><seriesInfo value="draft-ramki-ptp-hardware-rooted-attestation-01" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<author initials="R." surname="Krishnan" fullname="Ramki Krishnan"><organization>JPMorgan Chase</organization><address><postal><street></street>
+</postal><email>ramkri123@gmail.com</email>
+</address></author><author initials="M." surname="Richardson" fullname="Michael Richardson"><organization>Sandelman Software Works Inc</organization><address><postal><street></street>
+</postal><email>mcr+IETF@sandelman.ca</email>
+</address></author><author initials="D." surname="Lopez" fullname="Diego R. Lopez"><organization>Telefonica</organization><address><postal><street></street>
+</postal><email>diego.r.lopez@telefonica.com</email>
+</address></author><author initials="A." surname="Prasad" fullname="A Prasad"><organization>Oracle</organization><address><postal><street></street>
+</postal><email>a.prasad@oracle.com</email>
+</address></author><author initials="S." surname="Addepalli" fullname="Srinivasa Addepalli"><organization>Aryaka</organization><address><postal><street></street>
+</postal><email>srinivasa.addepalli@aryaka.com</email>
+</address></author><date/>
+<area>Security</area>
+<workgroup>PTP Working Group</workgroup>
+<keyword>PTP</keyword>
+<keyword>Attestation</keyword>
+<keyword>Time Provenance</keyword>
+<keyword>PQC</keyword>
+<keyword>SPIFFE</keyword>
+<keyword>Merkle Tree</keyword>
+<keyword>Non-Repudiation</keyword>
+
+<abstract>
+<t>This document defines a scalable framework for hardware‑rooted cryptographic attestation in the Precision Time Protocol (PTP). Standard PTP security mechanisms rely on symmetric keys, which suffer from identity ambiguity and source non-repudiation failures—vulnerabilities that allow any node possessing the shared secret to impersonate a Grandmaster. To resolve these issues while overcoming the silicon throughput limits of traditional TPMs and the overhead of Post-Quantum Cryptography (PQC), this draft specifies a tiered trust model. A Hardware Root (e.g., TPM) establishes a long-term PQC identity, while a workload identity management plane (e.g., SPIFFE/SPIRE) manages the frequent rotation of short-lived operational keys. These keys perform amortized signing of PTP message batches via Merkle Trees, ensuring wire-speed synchronization and irrefutable provenance for regulated environments.</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="introduction"><name>Introduction</name>
+<t>Precise, auditable time provenance is a cornerstone for regulated environments, including financial services, distributed ledgers, and sovereign AI. However, standard PTP security (IEEE 1588-2019) faces three critical architectural challenges:</t>
+
+<ol spacing="compact">
+<li><strong>The Identity and Non-Repudiation Problem:</strong> Current PTP security relies largely on symmetric keys (HMAC-SHA256). Because the Grandmaster (GM) and all Slaves share the same secret, any compromised node can forge time messages appearing to originate from the GM. This lack of source non-repudiation makes it impossible to irrefutably audit time provenance or defend against &quot;insider&quot; clock spoofing.</li>
+<li><strong>The Throughput Gap:</strong> Hardware Security Modules (TPMs) are &quot;slow-path&quot; silicon, often constrained to tens-to-hundreds of asymmetric operations per second — insufficient for high-performance PTP profiles that may require sustained high-frequency signing.</li>
+<li><strong>The PQC Payload Problem:</strong> Post-Quantum Cryptographic (PQC) signatures (e.g., ML-DSA) are significantly larger than standard PTP message MTUs, introducing fragmentation risks and unacceptable processing jitter if applied per-packet.</li>
+</ol>
+<t>This draft introduces a <strong>Transitive and Amortized Attestation</strong> model. Amortization, in this context, refers to spreading the cost of a single cryptographic signature across many PTP messages by signing only the root of their Merkle hash tree. By anchoring an automated software control plane in hardware silicon, we resolve the identity ambiguity of symmetric keys while maintaining wire-speed performance.</t>
+<t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all capitals, as shown here.</t>
+</section>
+
+<section anchor="architecture-the-tiered-trust-model"><name>Architecture: The Tiered Trust Model</name>
+<t>Trust is distributed across three functional layers to bridge the gap between &quot;Slow-but-Secure&quot; hardware and &quot;Fast-and-Precise&quot; network timing.</t>
+
+<section anchor="tier-1-hardware-root-immutable-identity"><name>Tier 1: Hardware Root (Immutable Identity)</name>
+<t>The Root of Trust (RoT) is a hardware component (e.g., TPM 2.0, HPE iLO 7, or SmartNIC SRoT) containing a non-exportable Identity Key. This key MUST be asymmetric and SHOULD be PQC-compatible (e.g., ML-DSA). This establishes an irrefutable &quot;Silicon Identity&quot; that cannot be cloned, addressing the fundamental weakness of symmetric shared secrets.</t>
+</section>
+
+<section anchor="tier-2-control-plane-workload-orchestration"><name>Tier 2: Control Plane (Workload Orchestration)</name>
+<t>To manage the lifecycle of cryptographic material without manual intervention, the PTP daemon is treated as a managed workload under workload identity management frameworks such as <strong>SPIFFE/SPIRE</strong>.
+* <strong>Attestation:</strong> The host identity management plane (e.g., HPE OneView, Keylime verifier/registrar) MUST verify the RoT's identity and platform state (PCRs) before authorizing key issuance. The interaction between the host identity management plane and the workload identity management plane for attesting the workload identity agent is described in {{GEO-FENCE}}.
+* <strong>Delegation:</strong> Upon successful attestation, the Workload identity management plane (e.g., SPIFFE/SPIRE) issues short-lived SVIDs and ephemeral <strong>Operational Keys</strong> which use standard non-PQC cryptography. This &quot;Transitive Attestation&quot; binds the high-speed software/NIC key to the immutable hardware identity.</t>
+</section>
+
+<section anchor="tier-3-data-plane-amortized-execution"><name>Tier 3: Data Plane (Amortized Execution)</name>
+<t>High-frequency signing is offloaded to the Data Plane using the <strong>Operational Keys</strong> in software or a hardware offload such as SmartNIC.
+* <strong>Merkle Batching:</strong> PTP messages are hashed into a Merkle Tree. A single signature on the Merkle Root provides cryptographic integrity and non-repudiation proof for the entire batch of PTP events. A batch is flushed and transmitted to the receiver when either the configured batch size N is reached or a maximum latency timer T expires, whichever comes first. This amortization makes large PQC signatures feasible within the PTP ecosystem.</t>
+</section>
+</section>
+
+<section anchor="scalable-attestation-mechanism"><name>Scalable Attestation Mechanism</name>
+
+<section anchor="solving-source-non-repudiation"><name>Solving Source Non-Repudiation</name>
+<t>By utilizing asymmetric operational keys certified by the Hardware Root, a Verifier can irrefutably prove that a batch of PTP messages originated from a specific physical device. In this model, a compromised Slave has no access to the private key required to forge a GM's signature, fixing the identity ambiguity inherent in current symmetric PTP profiles.</t>
+</section>
+
+<section anchor="amortized-pqc-readiness"><name>Amortized PQC Readiness</name>
+<t>PQC adoption is phased to ensure that data-plane performance is never compromised:
+1. <strong>Identity Layer:</strong> RECOMMENDED to use PQC-capable hardware roots (Identity Key) today to secure the long-term device identity.
+2. <strong>Control Layer:</strong> RECOMMENDED to use PQC-signed workload identities (e.g., SPIFFE/SPIRE SVIDs) to protect the distribution and rotation of keys.
+3. <strong>Data Layer:</strong> MAY use classical asymmetric algorithms (e.g., Ed25519) for the Merkle Root today, transitioning to PQC as specialized hardware acceleration becomes pervasive.</t>
+</section>
+</section>
+
+<section anchor="signed-token-structure-cbor"><name>Signed Token Structure (CBOR)</name>
+<t>The amortized token provides the &quot;Batch Proof&quot; for a set of N consecutive sequence IDs between a single sender &lt;-&gt; receiver pair. The token is created by the signing entity (GM or boundary clock) at batch flush time and validated by the receiver. The signature field (key 7) covers the canonical CBOR encoding of fields 1 through 6.</t>
+
+<sourcecode type="text"><![CDATA[; Amortized Signed Token (CBOR map)
+{
+  1 : uint,         ; version (e.g., 2)
+  2 : uint,         ; batch_size (N)
+  3 : bstr,         ; Merkle Root Hash
+  4 : uint,         ; First SequenceID in batch
+  5 : bstr,         ; Operational Key ID / Certificate Thumbprint
+  6 : bstr,         ; nonce (verifier-issued)
+  7 : bstr          ; signature over fields 1-6 (PQC recommended)
+}
+]]></sourcecode>
+</section>
+
+<section anchor="security-considerations"><name>Security Considerations</name>
+
+<section anchor="integrity-vs-network-jitter"><name>Integrity vs. Network Jitter</name>
+<t>PQC signatures are computationally heavy. Performing these on every packet would introduce variable jitter into the PTP timing loop. The amortized Merkle approach ensures that the timing-sensitive hardware timestamping remains asynchronous from the heavy cryptographic signing process.</t>
+</section>
+
+<section anchor="symmetric-key-obsolescence"><name>Symmetric Key Obsolescence</name>
+<t>Symmetric-key PTP security is insufficient for regulated time provenance due to the lack of source non-repudiation. This draft provides the blueprint for transitioning to asymmetric hardware-rooted keys as the only viable path to meaningful identity in multi-tenant or untrusted fabrics.</t>
+</section>
+
+<section anchor="network-path-asymmetry"><name>Network Path Asymmetry</name>
+<t>Attestation provides proof of Identity, Integrity, and Residency. It does not protect against physical network delay or path asymmetry. This mechanism MUST be used in conjunction with PTP's native delay measurement mechanisms.</t>
+</section>
+</section>
+
+<section anchor="iana-considerations"><name>IANA Considerations</name>
+<t>This document requests IANA to create a new registry named &quot;PTP Amortized Attestation TLV Types&quot; under an appropriate PTP-related registry group. The registry MUST define the following fields for each entry:</t>
+
+<ul spacing="compact">
+<li><strong>TLV Type:</strong> A unique unsigned integer identifier.</li>
+<li><strong>Name:</strong> A descriptive name (e.g., PTP_AMORTIZED_ATTESTATION_TLV).</li>
+<li><strong>Reference:</strong> The RFC or specification defining the TLV.</li>
+</ul>
+<t>Initial allocations in this registry are defined in this document. Future allocations SHALL follow the Specification Required policy as defined in {{!RFC8126}}.</t>
+</section>
+
+<section anchor="references"><name>References</name>
+
+<section anchor="normative-references"><name>Normative References</name>
+
+<dl spacing="compact">
+<dt>[IEEE1588]</dt>
+<dd>IEEE, &quot;IEEE Standard for a Precision Clock Synchronization Protocol for Networked Measurement and Control Systems&quot;, IEEE 1588-2019, 2019.</dd>
+<dt>[RFC8949]</dt>
+<dd>Bormann, C. and P. Hoffman, &quot;Concise Binary Object Representation (CBOR)&quot;, STD 94, RFC 8949, DOI 10.17487/RFC8949, December 2020, <eref target="https://www.rfc-editor.org/info/rfc8949">https://www.rfc-editor.org/info/rfc8949</eref>.</dd>
+<dt>[FIPS204]</dt>
+<dd>NIST, &quot;Module-Lattice-Based Digital Signature Standard (ML-DSA)&quot;, FIPS 204, 2024.</dd>
+<dt>[SPIFFE]</dt>
+<dd>SPIFFE Project, &quot;Secure Production Identity Framework for Everyone (SPIFFE) Specification&quot;, <eref target="https://github.com/spiffe/spiffe">https://github.com/spiffe/spiffe</eref>.</dd>
+<dt>[RFC2119]</dt>
+<dd>Bradner, S., &quot;Key words for use in RFCs to Indicate Requirement Levels&quot;, BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997, <eref target="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</eref>.</dd>
+<dt>[RFC8174]</dt>
+<dd>Leiba, B., &quot;Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words&quot;, BCP 14, RFC 8174, DOI 10.17487/RFC8174, May 2017, <eref target="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</eref>.</dd>
+<dt>[RFC8126]</dt>
+<dd>Cotton, M., Leiba, B., and T. Narten, &quot;Guidelines for Writing an IANA Considerations Section in RFCs&quot;, BCP 26, RFC 8126, DOI 10.17487/RFC8126, June 2017, <eref target="https://www.rfc-editor.org/info/rfc8126">https://www.rfc-editor.org/info/rfc8126</eref>.</dd>
+</dl>
+</section>
+
+<section anchor="informative-references"><name>Informative References</name>
+
+<dl spacing="compact">
+<dt>[RFC9334]</dt>
+<dd>Birkholz, H., Thaler, D., Richardson, M., Smith, N., and W. Pan, &quot;Remote ATtestation procedureS (RATS) Architecture&quot;, RFC 9334, DOI 10.17487/RFC9334, January 2023, <eref target="https://www.rfc-editor.org/info/rfc9334">https://www.rfc-editor.org/info/rfc9334</eref>.</dd>
+<dt>[GEO-FENCE]</dt>
+<dd>Krishnan, R., et al., &quot;Verifiable Geo-Fence for Workload Identity&quot;, Work in Progress, Internet-Draft, draft-lkspa-wimse-verifiable-geo-fence, <eref target="https://github.com/ramkri123/ietf-tpm-geofencing/blob/master/draft-lkspa-wimse-verifiable-geo-fence.md">https://github.com/ramkri123/ietf-tpm-geofencing/blob/master/draft-lkspa-wimse-verifiable-geo-fence.md</eref>.</dd>
+<dt>[HPE-ILO7]</dt>
+<dd>HPE, &quot;HPE iLO 7 Security Whitepaper&quot;, <eref target="https://www.hpe.com">https://www.hpe.com</eref>.</dd>
+</dl>
+</section>
+</section>
+
+</middle>
+
+<back>
+
+</back>
+
+</rfc>
