@@ -17,7 +17,9 @@ txt: $(DRAFT).txt
 html: $(DRAFT).html
 xml: $(DRAFT).xml
 
-$(DRAFT).xml: draft-ramki-ptp-hardware-rooted-attestation-latest.md
+MASTER := draft-ramki-ptp-hardware-rooted-attestation.md
+
+$(DRAFT).xml: $(MASTER)
 	$(MMARK) $< > $@
 
 $(DRAFT).txt: $(DRAFT).xml
