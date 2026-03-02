@@ -101,7 +101,7 @@ PQC adoption is phased to ensure that data-plane performance is never compromise
 
 # Signed Token Structure (CBOR)
 
-The amortized token provides the "Batch Proof" for $N$ sequence IDs.
+The amortized token provides the "Batch Proof" for $N$ sequence IDs between a single sender <-> receiver pair.
 
 ```text
 ; Amortized Signed Token (CBOR map)
