@@ -5,7 +5,7 @@ category = "info"
 docName = "draft-ramki-ptp-hardware-rooted-attestation-01"
 ipr = "trust200902"
 area = "Security"
-workgroup = "PTP Working Group"
+workgroup = "Network Time Protocols"
 keyword = ["PTP", "Attestation", "Time Provenance", "PQC", "SPIFFE", "Merkle Tree", "Non-Repudiation"]
 
 [seriesInfo]

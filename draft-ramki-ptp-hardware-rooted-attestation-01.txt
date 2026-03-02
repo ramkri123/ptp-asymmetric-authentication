@@ -2,7 +2,7 @@
 
 
 
-PTP Working Group                                            R. Krishnan
+Network Time Protocols                                       R. Krishnan
 Internet-Draft                                            JPMorgan Chase
 Intended status: Informational                             M. Richardson
 Expires: 3 September 2026                   Sandelman Software Works Inc
