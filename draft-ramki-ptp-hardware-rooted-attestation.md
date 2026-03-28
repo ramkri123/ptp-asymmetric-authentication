@@ -60,14 +60,20 @@ organization = "Aryaka"
 
 This document defines a scalable framework for hardware‑rooted cryptographic attestation in the Precision Time Protocol (PTP). Standard PTP security mechanisms rely on symmetric keys, which suffer from identity ambiguity and source non-repudiation failures—vulnerabilities that allow any node possessing the shared secret to impersonate a Grandmaster. To resolve these issues while overcoming the silicon throughput limits of traditional TPMs and the overhead of Post-Quantum Cryptography (PQC), this draft specifies a tiered trust model. A Hardware Root (e.g., TPM) establishes a long-term PQC identity, while a workload identity management plane (e.g., SPIFFE/SPIRE) manages the frequent rotation of short-lived operational keys. These keys perform amortized signing of PTP message batches via Merkle Trees, ensuring wire-speed synchronization and irrefutable provenance for regulated environments.
 
+Venue: this document is maintained at: https://github.com/ramkri123/ptp-asymmetric-authentication#
+and is a candidate in the NTP WG at: https://datatracker.ietf.org/wg/ntp/about/
+
+
 {mainmatter}
 
 # Introduction
 
 Precise, auditable time provenance is a cornerstone for regulated environments, including financial services, distributed ledgers, and sovereign AI. However, standard PTP security (IEEE 1588-2019) faces three critical architectural challenges:
 
-1. **The Identity and Non-Repudiation Problem:** Current PTP security relies largely on symmetric keys (HMAC-SHA256). Because the Grandmaster (GM) and all Slaves share the same secret, any compromised node can forge time messages appearing to originate from the GM. This lack of source non-repudiation makes it impossible to irrefutably audit time provenance or defend against "insider" clock spoofing.
+1. **The Identity and Non-Repudiation Problem:** Current PTP security relies largely on symmetric keys (HMAC-SHA256).  Because the Grandmaster (GM) and all Slaves share the same secret, any compromised node can forge time messages appearing to originate from the GM. This lack of source non-repudiation makes it impossible to irrefutably audit time provenance or defend against "insider" clock spoofing.
+
 2. **The Throughput Gap:** Hardware Security Modules (TPMs) are "slow-path" silicon, often constrained to tens-to-hundreds of asymmetric operations per second — insufficient for high-performance PTP profiles that may require sustained high-frequency signing.
+
 3. **The PQC Payload Problem:** Post-Quantum Cryptographic (PQC) signatures (e.g., ML-DSA) are significantly larger than standard PTP message MTUs, introducing fragmentation risks and unacceptable processing jitter if applied per-packet.
 
 This draft introduces a **Transitive and Amortized Attestation** model. Amortization, in this context, refers to spreading the cost of a single cryptographic signature across many PTP messages by signing only the root of their Merkle hash tree. By anchoring an automated software control plane in hardware silicon, we resolve the identity ambiguity of symmetric keys while maintaining wire-speed performance.
@@ -79,27 +85,42 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 Trust is distributed across three functional layers to bridge the gap between "Slow-but-Secure" hardware and "Fast-and-Precise" network timing.
 
 ## Tier 1: Hardware Root (Immutable Identity)
-The Root of Trust (RoT) is a hardware component (e.g., TPM 2.0, HPE iLO 7, or SmartNIC SRoT) containing a non-exportable Identity Key. This key MUST be asymmetric and SHOULD be PQC-compatible (e.g., ML-DSA). This establishes an irrefutable "Silicon Identity" that cannot be cloned, addressing the fundamental weakness of symmetric shared secrets.
+The Root of Trust (RoT) is a hardware component (e.g., TPM 2.0, HPE iLO 7, or SmartNIC SRoT) containing a non-exportable Identity Key such as an IDevID, Endorsement Key (EK).
+This key MUST be asymmetric and SHOULD be quantum-safe (e.g., ML-DSA). This establishes an irrefutable "Silicon Identity" that cannot be cloned, addressing the fundamental weakness of symmetric shared secrets.
 
 ## Tier 2: Control Plane (Workload Orchestration)
 To manage the lifecycle of cryptographic material without manual intervention, the PTP daemon is treated as a managed workload under workload identity management frameworks such as **SPIFFE/SPIRE**.
-* **Attestation:** The host identity management plane (e.g., HPE OneView, Keylime verifier/registrar) MUST verify the RoT's identity and platform state (PCRs) before authorizing key issuance. The interaction between the host identity management plane and the workload identity management plane for attesting the workload identity agent is described in {{GEO-FENCE}}.
-* **Delegation:** Upon successful attestation, the Workload identity management plane (e.g., SPIFFE/SPIRE) issues short-lived SVIDs and ephemeral **Operational Keys** which use standard non-PQC cryptography. This "Transitive Attestation" binds the high-speed software/NIC key to the immutable hardware identity.
+
+* **Attestation:** The host identity management plane (e.g., HPE OneView, Keylime verifier/registrar) MUST perform a Remote Attestation, verifing the RoT's identity, evaluating state (PCRs) before authorizing key issuance.
+The interaction between the host identity management plane and the workload identity management plane for evaluating the workload identity agent is described in {{GEO-FENCE}}.
+
+* **Delegation:** Upon successful evaluation of security posture via remote attestation, the Workload identity management plane (e.g., SPIFFE/SPIRE) issues short-lived SVIDs and ephemeral **Operational Keys** which may use legacy (not quantum-safe) cryptography.
+(Such as an EcDSA or EdDSA key pair)
+This "Transitive Attestation" binds the high-speed software/NIC key to the immutable hardware identity.
+Quantum-unsafe cryptography is specified primarily due to it's compatibility with existing Network Processors ("SmartNIC"), it's smaller size and higher performance.
+Quantum-unsafe methods can be tolerated as the keys are very short-lived, and easily  replaced.
+Should it become possible to support quantum-safe algorithm due to advancements in algorithms or hardware, then new work would specify that.
 
 ## Tier 3: Data Plane (Amortized Execution)
-High-frequency signing is offloaded to the Data Plane using the **Operational Keys** in software or a hardware offload such as SmartNIC.
-* **Merkle Batching:** PTP messages are hashed into a Merkle Tree. A single signature on the Merkle Root provides cryptographic integrity and non-repudiation proof for the entire batch of PTP events. A batch is flushed and transmitted to the receiver when either the configured batch size N is reached or a maximum latency timer T expires, whichever comes first. This amortization makes large PQC signatures feasible within the PTP ecosystem.
+High-frequency signing is offloaded to the Data Plane using the **Operational Keys** in software or a hardware offload such as Network Processor ("SmartNIC").
+
+* **Merkle Batching:** PTP messages are hashed into a Merkle Tree. A single signature on the Merkle Root provides cryptographic integrity and non-repudiation proof for the entire batch of PTP events. A batch is flushed and transmitted to the receiver when either the configured batch size N is reached or a maximum latency timer T expires, whichever comes first. This amortization makes large quantum-safe signatures feasible within the PTP ecosystem.
 
 # Scalable Attestation Mechanism
 
 ## Solving Source Non-Repudiation
-By utilizing asymmetric operational keys certified by the Hardware Root, a Verifier can irrefutably prove that a batch of PTP messages originated from a specific physical device. In this model, a compromised Slave has no access to the private key required to forge a GM's signature, fixing the identity ambiguity inherent in current symmetric PTP profiles.
 
-## Amortized PQC Readiness
-PQC adoption is phased to ensure that data-plane performance is never compromised:
-1. **Identity Layer:** RECOMMENDED to use PQC-capable hardware roots (Identity Key) today to secure the long-term device identity.
-2. **Control Layer:** RECOMMENDED to use PQC-signed workload identities (e.g., SPIFFE/SPIRE SVIDs) to protect the distribution and rotation of keys.
-3. **Data Layer:** MAY use classical asymmetric algorithms (e.g., Ed25519) for the Merkle Root today, transitioning to PQC as specialized hardware acceleration becomes pervasive.
+By utilizing asymmetric operational keys certified by the Hardware Root, a Verifier can irrefutably prove that a batch of PTP messages originated from a specific physical device.
+In this model, a compromised Slave has no access to the private key required to forge a GM's signature, fixing the identity ambiguity inherent in current symmetric PTP profiles.
+
+## Amortized Quantum-Safe (PQC) Readiness
+Quantum-safe adoption is phased to ensure that data-plane performance is never compromised:
+
+1. **Identity Layer:** RECOMMENDED to use quantum-safe hardware roots (Identity Key) today to secure the long-term device identity.
+
+2. **Control Layer:** RECOMMENDED to use quamtum-safe signed workload identities (e.g., SPIFFE/SPIRE SVIDs) to protect the distribution and rotation of keys.
+
+3. **Data Layer:** MAY use legacy asymmetric algorithms (e.g., EdDSA) for the Merkle Root today, transitioning to quantum-safe algorithms as specialized hardware acceleration becomes pervasive.
 
 # Signed Token Structure (CBOR)
 
@@ -118,11 +139,15 @@ The amortized token provides the "Batch Proof" for a set of N consecutive sequen
 }
 ```
 
+(XXX: MCR Why isn't this COSE?  What's version==1?  This specification is too loose)
+
 # Security Considerations
 
 ## Integrity vs. Network Jitter
 
-PQC signatures are computationally heavy. Performing these on every packet would introduce variable jitter into the PTP timing loop. The amortized Merkle approach ensures that the timing-sensitive hardware timestamping remains asynchronous from the heavy cryptographic signing process.
+Quantum-safe (PQC) signatures are computationally heavy.
+Performing these on every packet would introduce variable jitter into the PTP timing loop.
+The amortized Merkle approach ensures that the timing-sensitive hardware timestamping remains asynchronous from the heavy cryptographic signing process.
 
 ## Symmetric Key Obsolescence
 
@@ -130,14 +155,16 @@ Symmetric-key PTP security is insufficient for regulated time provenance due to 
 
 ## Network Path Asymmetry
 
-Attestation provides proof of Identity, Integrity, and Residency. It does not protect against physical network delay or path asymmetry. This mechanism MUST be used in conjunction with PTP's native delay measurement mechanisms.
+Remote Attestation provides proof of Identity, Integrity, and Residency. It does not protect against physical network delay or path asymmetry. This mechanism MUST be used in conjunction with PTP's native delay measurement mechanisms.
 
 # IANA Considerations
 
 This document requests IANA to create a new registry named "PTP Amortized Attestation TLV Types" under an appropriate PTP-related registry group. The registry MUST define the following fields for each entry:
 
 * **TLV Type:** A unique unsigned integer identifier.
+
 * **Name:** A descriptive name (e.g., PTP_AMORTIZED_ATTESTATION_TLV).
+
 * **Reference:** The RFC or specification defining the TLV.
 
 Initial allocations in this registry are defined in this document. Future allocations SHALL follow the Specification Required policy as defined in {{!RFC8126}}.
